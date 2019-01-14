@@ -3,15 +3,19 @@ import numpy as np
 
 
 cdef extern from "atmcdLXd.h":
+    unsigned int CoolerOFF();
+    unsigned int CoolerON();
     unsigned int GetAcquiredData16(unsigned short *arr, int size)
     unsigned int GetDetector(int *xpixels, int *ypixels)
     unsigned int GetStatus(int *status)
+    unsigned int GetTemperatureF(float *temperature)
     unsigned int Initialize(char *dir)
     unsigned int SetAcquisitionMode(int mode)
     unsigned int SetExposureTime(float time)
     unsigned int SetImage(int hbin, int vbin, int hstart, int hend, int vstart, int vend)
     unsigned int SetReadMode(int mode)
     unsigned int SetShutter(int typ, int mode, int closingtime, int openingtime)
+    unsigned int SetTemperature(int temperature)
     unsigned int ShutDown()
     unsigned int StartAcquisition();
     unsigned int WaitForAcquisition();
@@ -47,14 +51,49 @@ cdef extern from "atmcdLXd.h":
     int DRV_ACQ_BUFFER
     int DRV_ACQ_DOWNFIFO_FULL
     int DRV_SPOOLERROR
-
+    int DRV_TEMP_OFF
+    int DRV_TEMP_STABILIZED
+    int DRV_TEMP_NOT_REACHED
+    int DRV_TEMP_DRIFT
+    int DRV_TEMP_NOT_STABILIZED
+ 
 
 ANDOR_ACQUIRING = DRV_ACQUIRING
-
+ANDOR_TEMP_OFF = DRV_TEMP_OFF
+ANDOR_TEMP_STABILIZED = DRV_TEMP_STABILIZED
+ANDOR_TEMP_NOT_REACHED = DRV_TEMP_NOT_REACHED
+ANDOR_TEMP_DRIFT = DRV_TEMP_DRIFT
+ANDOR_TEMP_NOT_STABILIZED = DRV_TEMP_NOT_STABILIZED
 
 class AndorException(Exception):
     pass
 
+
+def coolerOn():
+    # call library
+    res = CoolerON()
+    
+    # error checking
+    if res != DRV_SUCCESS:
+        raise AndorException({
+                DRV_NOT_INITIALIZED: 'System not initialized.',
+                DRV_ACQUIRING: 'Acquisition in progress.',
+                DRV_ERROR_ACK: 'Unable to communicate with card.',
+            }[res])
+
+
+def coolerOff():
+    # call library
+    res = CoolerOFF()
+    
+    # error checking
+    if res != DRV_SUCCESS:
+        raise AndorException({
+                DRV_NOT_INITIALIZED: 'System not initialized.',
+                DRV_ACQUIRING: 'Acquisition in progress.',
+                DRV_ERROR_ACK: 'Unable to communicate with card.',
+            }[res])
+    
 
 def getAcquiredData(width, height):
     # create numpy array of given dimensions
@@ -112,6 +151,24 @@ def getStatus():
     # no error, return status
     return status
 
+
+def getTemperature():
+    # define temp
+    cdef float temp = 0
+    
+    # call library
+    res = GetTemperatureF(&temp)
+    
+    # error checking
+    if res in [DRV_NOT_INITIALIZED, DRV_ACQUIRING, DRV_ERROR_ACK]:
+        raise AndorException({
+                DRV_NOT_INITIALIZED: 'System not initialized.',
+                DRV_ACQUIRING: 'Acquisition in progress.',
+                DRV_ERROR_ACK: 'Unable to communicate with card.'
+            }[res])
+    
+    # no error, return temperature and status
+    return temp, res
 
 def init(dir):
     # call library
@@ -205,6 +262,21 @@ def setShutter(typ, mode, closingtime, openingtime):
                 DRV_P4INVALID: 'Invalid time to close.'
             }[res])
 
+
+def setTemperature(temp):
+    # call library
+    res = SetTemperature(temp)
+    
+    # error checking
+    if res != DRV_SUCCESS:
+        raise AndorException({
+                DRV_NOT_INITIALIZED: 'System not initialized.',
+                DRV_ACQUIRING: 'Acquisition in progress.',
+                DRV_ERROR_ACK: 'Unable to communicate with card.',
+                DRV_P1INVALID: 'Temperature invalid.',
+                DRV_NOT_SUPPORTED: ' The camera does not support setting the temperature.'
+            }[res])
+    
 
 def startAcquisition():
     # call library

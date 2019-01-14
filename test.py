@@ -30,6 +30,10 @@ try:
     logging.info('Setup Image dimensions')
     #width = height = 2000
     setImage(1, 1, 1, width, 1, height)
+    
+    temp, cool = getTemperature()
+    print(temp, cool)
+    raise ValueError
 
     logging.info('Acquire')
     startAcquisition()
