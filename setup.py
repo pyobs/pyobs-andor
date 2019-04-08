@@ -4,7 +4,7 @@ from Cython.Build import cythonize
 
 # setup
 setup(name='pobs_andor',
-      version='0.1',
+      version='0.2',
       description='pobs component for Andor cameras',
       packages=['pobs_andor'],
       ext_modules=cythonize(Extension(
