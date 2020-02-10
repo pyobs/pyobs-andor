@@ -3,13 +3,13 @@ import os
 from Cython.Build import cythonize
 
 # setup
-setup(name='pobs_andor',
+setup(name='pyobs_andor',
       version='0.2',
-      description='pobs component for Andor cameras',
-      packages=['pobs_andor'],
+      description='pyobs component for Andor cameras',
+      packages=['pyobs_andor'],
       ext_modules=cythonize(Extension(
-          "pobs_andor.libandor", 
-          ["pobs_andor/libandor.pyx"],
+          "pyobs_andor.libandor", 
+          ["pyobs_andor/libandor.pyx"],
           libraries=["andor"]
       )),
-      requires=['pobs', 'astropy', 'numpy'])
+      requires=['pyobs', 'astropy', 'numpy'])
