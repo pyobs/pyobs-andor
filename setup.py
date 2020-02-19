@@ -12,4 +12,4 @@ setup(name='pyobs_andor',
           ["pyobs_andor/libandor.pyx"],
           libraries=["andor"]
       )),
-      requires=['pyobs', 'astropy', 'numpy'])
+      requires=['astropy', 'numpy'])
